@@ -927,6 +927,9 @@ const convertHTTPResponseToDataProvider = async (
                     }
                 }
             }
+
+            const pagingLimit = parseInt(headers.get('X-Paging-Limit'));
+
             if (!isEmpty(referenceFilter)) {
                 let filtered = await filterResult(json, referenceFilter);
                 return {
@@ -935,6 +938,7 @@ const convertHTTPResponseToDataProvider = async (
                     data: filtered,
                     total: filtered ? filtered.length : 0,
                     unfilteredTotal: json ? json.length : 0,
+                    pagingLimit,
                 };
             }
 
@@ -943,6 +947,8 @@ const convertHTTPResponseToDataProvider = async (
                 pagination,
                 data: json,
                 total: json ? json.length : 0,
+                unfilteredTotal: json ? json.length : 0,
+                pagingLimit,
             };
         case GET_MANY:
             if (!useRql) {
@@ -1021,10 +1027,14 @@ const dataProvider = async (type, resource, params) => {
                 params.paginationURL.includes('paging.since');
             if (
                 data.unfilteredTotal &&
-                data.unfilteredTotal === recordsToGet &&
-                data.unfilteredTotal !== data.total
+                data.unfilteredTotal === data.pagingLimit &&
+                (data.unfilteredTotal < recordsToGet ||
+                    data.unfilteredTotal > data.total)
             ) {
-                // unfiltered data returned a whole page of data so more results are potentially available
+                // unfiltered response was a whole page of data
+                // but response page size was less than requested
+                // or response was filtered locally
+                // so more results are potentially available
                 recordsToGet -= data.total;
                 params.paginationURL = (pageForward
                     ? data.pagination.next
