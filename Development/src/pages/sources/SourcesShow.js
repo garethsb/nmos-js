@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     ArrayField,
-    ListButton,
     ReferenceArrayField,
     ReferenceField,
     ReferenceManyField,
@@ -10,7 +9,6 @@ import {
     SimpleShowLayout,
     SingleFieldList,
     TextField,
-    TopToolbar,
     useRecordContext,
     useShowController,
 } from 'react-admin';
@@ -19,19 +17,12 @@ import LinkChipField from '../../components/LinkChipField';
 import ObjectField from '../../components/ObjectField';
 import { FORMATS, ParameterField } from '../../components/ParameterRegisters';
 import RateField from '../../components/RateField';
-import RawButton from '../../components/RawButton';
+import ResourceShowActions from '../../components/ResourceShowActions';
 import ResourceTitle from '../../components/ResourceTitle';
 import SanitizedDivider from '../../components/SanitizedDivider';
 import TAIField from '../../components/TAIField';
 import UnsortableDatagrid from '../../components/UnsortableDatagrid';
 import { queryVersion } from '../../settings';
-
-const SourcesShowActions = ({ basePath, data, resource }) => (
-    <TopToolbar title={<ResourceTitle />}>
-        {data ? <RawButton record={data} resource={resource} /> : null}
-        <ListButton title={'Return to ' + basePath} basePath={basePath} />
-    </TopToolbar>
-);
 
 export const SourcesShow = props => {
     const controllerProps = useShowController(props);
@@ -48,7 +39,7 @@ const SourcesShowView = props => {
         <ShowView
             {...props}
             title={<ResourceTitle />}
-            actions={<SourcesShowActions />}
+            actions={<ResourceShowActions />}
         >
             <SimpleShowLayout>
                 <TextField label="ID" source="id" />
