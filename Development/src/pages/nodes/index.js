@@ -1,4 +1,5 @@
+import NodesEdit from './NodesEdit';
 import NodesList from './NodesList';
 import NodesShow from './NodesShow';
 
-export { NodesList, NodesShow };
+export { NodesEdit, NodesList, NodesShow };

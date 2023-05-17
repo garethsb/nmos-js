@@ -510,6 +510,37 @@ const convertDataProviderRequestToHTTP = (
             }
         }
         case UPDATE: {
+            if (resource === 'nodes') {
+                let patchData = {
+                    label: params.data.label,
+                    description: params.data.description,
+                    tags: Object.fromEntries(
+                        Object.entries(params.data.tags)
+                            .filter(([key, val]) => !Array.isArray(val))
+                            .map(([key, val]) => [
+                                key,
+                                val === null
+                                    ? null
+                                    : Array.isArray(val)
+                                    ? val
+                                    : val === ''
+                                    ? []
+                                    : val.split(','),
+                            ])
+                    ),
+                };
+                return {
+                    url: concatUrl(
+                        params.data.services[0].href,
+                        `/self` // `/${resource}/${params.id}`
+                    ),
+                    options: {
+                        method: 'PATCH',
+                        headers,
+                        body: JSON.stringify(patchData),
+                    },
+                };
+            }
             let differences = [];
             let allDifferences = diff(
                 get(params, 'previousData.$staged'),
