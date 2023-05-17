@@ -983,9 +983,9 @@ const convertHTTPResponseToDataProvider = async (
                 total: null,
             };
         case UPDATE:
-            return { data: { ...json, id: json.id } };
+            return { data: { ...params.data, ...json } };
         case CREATE:
-            return { data: { ...params.data, id: json.id } };
+            return { data: { ...params.data, ...json } };
         case DELETE:
             return { data: { id: params.id } };
         default:
