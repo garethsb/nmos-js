@@ -532,7 +532,7 @@ const convertDataProviderRequestToHTTP = (
                 return {
                     url: concatUrl(
                         params.data.services[0].href,
-                        `/self` // `/${resource}/${params.id}`
+                        `/node/self` // `/node/${resource}/${params.id}`
                     ),
                     options: {
                         method: 'PATCH',
