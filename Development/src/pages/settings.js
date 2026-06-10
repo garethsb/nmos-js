@@ -15,7 +15,11 @@ import {
 import { Title } from 'react-admin';
 import {
     AUTH_API,
+    BRIDGE_AUTO,
+    BRIDGE_DISABLED,
+    BRIDGE_FORCED,
     CLIENT_ID,
+    CONNECTION_BRIDGE,
     DNSSD_API,
     FRIENDLY_PARAMETERS,
     LOGGING_API,
@@ -46,6 +50,21 @@ const StyledDivider = withStyles(theme => ({
         width: 450,
     },
 }))(Divider);
+
+const bridgeModes = [
+    {
+        value: BRIDGE_DISABLED,
+        label: 'No Bridge',
+    },
+    {
+        value: BRIDGE_AUTO,
+        label: 'Auto Bridge',
+    },
+    {
+        value: BRIDGE_FORCED,
+        label: 'Forced Bridge',
+    },
+];
 
 const pagingLimits = [
     {
@@ -211,6 +230,36 @@ const Settings = () => {
                                     }
                                     helperText="Authentication Server's well known endpoint"
                                 />
+                            </StyledListItem>
+                        )}
+                        <StyledDivider />
+                        {!hiddenSetting(CONNECTION_BRIDGE) && (
+                            <StyledListItem>
+                                <StyledTextField
+                                    select
+                                    label="Connection Bridge"
+                                    variant="filled"
+                                    value={values[CONNECTION_BRIDGE]}
+                                    onChange={handleTextChange(
+                                        CONNECTION_BRIDGE
+                                    )}
+                                    margin="normal"
+                                    disabled={disabledSetting(
+                                        CONNECTION_BRIDGE
+                                    )}
+                                    helperText={
+                                        'Proxy Connection API requests via the bridge at /x-nmos-bridge/v1.0 on the Query API host, when Device control endpoints are not directly reachable (Auto) or always (Forced)'
+                                    }
+                                >
+                                    {bridgeModes.map(option => (
+                                        <MenuItem
+                                            key={option.value}
+                                            value={option.value}
+                                        >
+                                            {option.label}
+                                        </MenuItem>
+                                    ))}
+                                </StyledTextField>
                             </StyledListItem>
                         )}
                         <StyledDivider />

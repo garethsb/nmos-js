@@ -15,6 +15,12 @@ export const FRIENDLY_PARAMETERS = 'Friendly Parameters';
 
 export const CLIENT_ID = 'Client ID';
 
+export const CONNECTION_BRIDGE = 'Connection Bridge';
+// Connection Bridge modes
+export const BRIDGE_DISABLED = 'disabled';
+export const BRIDGE_AUTO = 'auto';
+export const BRIDGE_FORCED = 'forced';
+
 export const disabledSetting = name => get(CONFIG, `${name}.disabled`);
 export const hiddenSetting = name => get(CONFIG, `${name}.hidden`);
 
@@ -102,6 +108,14 @@ export const setUsingAuth = auth => {
     }
 };
 
+// an unrecognized stored value falls back to the default mode
+export const connectionBridgeMode = () => {
+    const mode = getJSONSetting(CONNECTION_BRIDGE, BRIDGE_DISABLED);
+    return [BRIDGE_DISABLED, BRIDGE_AUTO, BRIDGE_FORCED].includes(mode)
+        ? mode
+        : BRIDGE_DISABLED;
+};
+
 export const authClientId = () => window.localStorage.getItem(CLIENT_ID) || '';
 export const setAuthClientId = clientId =>
     window.localStorage.setItem(CLIENT_ID, clientId);
@@ -161,6 +175,7 @@ const useSettings = () => {
         [PAGING_LIMIT]: apiPagingLimit(QUERY_API),
         [USE_RQL]: apiUsingRql(QUERY_API),
         [FRIENDLY_PARAMETERS]: getJSONSetting(FRIENDLY_PARAMETERS, false),
+        [CONNECTION_BRIDGE]: connectionBridgeMode(),
         [CLIENT_ID]: authClientId(),
         [AUTH_API]: apiUrl(AUTH_API),
     });
@@ -176,6 +191,8 @@ const useSettings = () => {
         if (isEffective(USE_RQL)) setApiUsingRql(QUERY_API, values[USE_RQL]);
         if (isEffective(FRIENDLY_PARAMETERS))
             setJSONSetting(FRIENDLY_PARAMETERS, values[FRIENDLY_PARAMETERS]);
+        if (isEffective(CONNECTION_BRIDGE))
+            setJSONSetting(CONNECTION_BRIDGE, values[CONNECTION_BRIDGE]);
         if (isEffective(CLIENT_ID)) setAuthClientId(values[CLIENT_ID]);
         if (isEffective(AUTH_API)) setApiUrl(AUTH_API, values[AUTH_API]);
     }, [values]);
