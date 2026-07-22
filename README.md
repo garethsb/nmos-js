@@ -30,6 +30,10 @@ After setting up the dependencies, follow these [instructions](Documents/Getting
 The web application can also be packaged and deployed with the [nmos-cpp-registry application](https://github.com/sony/nmos-cpp).
 Copy the contents of the nmos-js build directory into the admin directory next to the nmos-cpp-registry executable.
 
+For deployments where the browser cannot reach Device Connection APIs directly,
+the optional [NMOS Connection API Bridge](ConnectionBridge/README.md) provides
+controlled access through Envoy.
+
 ## Agile Development
 
 [<img alt="JT-NM Tested 03/20 NMOS & TR-1001-1 Controller" src="Documents/images/jt-nm-tested-03-20-controller.png?raw=true" height="135" align="right"/>](https://jt-nm.org/jt-nm_tested/)
@@ -65,6 +69,7 @@ The implementation is designed to be extended. Development is ongoing, following
 
 Recent activity on the project (newest first):
 
+- Added the optional NMOS Connection API Bridge.
 - Added prototype [IS-12 Device Model browser client](is12-client/README.md).
 - Added [automated controller testing](TestingFacade/README.md) for nmos-js.
 - Read-only support for IS-08 Audio Channel Mapping
