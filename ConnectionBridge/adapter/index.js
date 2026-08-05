@@ -275,6 +275,35 @@ const bridgeRoutes = target => {
     // sub-path) when rewriting onto the Device Connection API basePath,
     // so trailing-slash handling stays with the upstream per IS-04/IS-05.
     const pathPrefix = `${BRIDGE_PREFIX}/devices/${target.deviceId}/connection/${target.version}`;
+    // Envoy 1.31 set_metadata has no per-route config; LuaPerRoute on a
+    // dedicated filter writes Location-rewrite context into dynamic metadata
+    // for location_rewrite.lua. Values are NMOS paths / host:port lists.
+    const escapeLua = s =>
+        String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    const formatAuthority = c =>
+        c.host.includes(':') ? `[${c.host}]:${c.port}` : `${c.host}:${c.port}`;
+    const upstreamAuthorities = target.candidates
+        .map(formatAuthority)
+        .join(',');
+    const locationMeta = {
+        typed_per_filter_config: {
+            'nmos.bridge.location_meta': {
+                '@type':
+                    'type.googleapis.com/envoy.extensions.filters.http.lua.v3.LuaPerRoute',
+                source_code: {
+                    inline_string: [
+                        'function envoy_on_request(request_handle)',
+                        '  local md = request_handle:streamInfo():dynamicMetadata()',
+                        `  md:set("nmos_bridge_location", "base_path", "${escapeLua(target.basePath)}")`,
+                        `  md:set("nmos_bridge_location", "bridge_path", "${escapeLua(pathPrefix)}")`,
+                        '  md:set("nmos_bridge_location", "upstream_scheme", "http")',
+                        `  md:set("nmos_bridge_location", "upstream_authorities", "${escapeLua(upstreamAuthorities)}")`,
+                        'end',
+                    ].join('\n'),
+                },
+            },
+        },
+    };
     const action = {
         cluster: clusterName(target),
         prefix_rewrite: target.basePath,
@@ -301,6 +330,7 @@ const bridgeRoutes = target => {
                     num_retries: 2,
                 },
             },
+            ...locationMeta,
         },
         {
             match: {
@@ -315,6 +345,7 @@ const bridgeRoutes = target => {
                 ],
             },
             route: action,
+            ...locationMeta,
         },
         // any other method on a known target
         {
