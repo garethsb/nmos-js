@@ -221,7 +221,7 @@ Phase 1 is implemented, plus health checking and multi-endpoint failover from Ph
 - `GET`/`HEAD`/`POST`/`PATCH`
 - Upstream 3xx `Location` handling (see below)
 
-Not yet implemented: response size limits, HTTPS upstreams, authentication translation, mTLS, and an xDS control plane.
+Not yet implemented: response size limits, HTTPS upstreams, authentication translation, mTLS, and an xDS control plane. Proxying Query API and Device NCP WebSockets through Envoy is proposed in [docs/websocket-proxy-plan.md](docs/websocket-proxy-plan.md).
 
 `Location` handling uses each target's Connection API `base_path` (the path of the Device control `href`, typically `/x-nmos/connection/v1.1` or similar):
 
