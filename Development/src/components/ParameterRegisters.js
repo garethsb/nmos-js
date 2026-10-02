@@ -203,6 +203,9 @@ export const TAGS = {
 
 // Transports in the NMOS Parameter Registers
 // see https://github.com/AMWA-TV/nmos-parameter-registers/tree/master/transports
+// oneToOne on an entry copies each parameter name present on both the
+// Sender's active transport_params and the Receiver's staged transport_params.
+// An explicit mapping for that transport takes precedence.
 export const TRANSPORTS = {
     'urn:x-nmos:transport:rtp': {
         label: 'RTP',
@@ -226,3 +229,12 @@ export const TRANSPORTS = {
         label: 'MXL',
     },
 };
+
+export const transportIsOneToOne = transport =>
+    Boolean(
+        get(
+            TRANSPORTS,
+            [unversionedParameter(transport || ''), 'oneToOne'],
+            false
+        )
+    );

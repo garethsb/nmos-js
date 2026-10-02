@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, Grid } from '@material-ui/core';
+import { Card, CardContent, Grid, Typography } from '@material-ui/core';
 import CheckIcon from '@material-ui/icons/Check';
 import ClearIcon from '@material-ui/icons/Clear';
 import {
@@ -14,6 +14,7 @@ import {
 } from 'react-admin';
 import { get, has } from 'lodash';
 import CardFormIterator from '../../components/CardFormIterator';
+import { transportIsOneToOne } from '../../components/ParameterRegisters';
 import SanitizedDivider from '../../components/SanitizedDivider';
 import labelize from '../../components/labelize';
 
@@ -563,6 +564,67 @@ const MXLSenderEdit = ({ record }) => {
     );
 };
 
+const GenericSender = ({ data }) => (
+    <Grid container spacing={2}>
+        {Object.keys(data).map(i => (
+            <Grid item sm key={i}>
+                <GenericSenderLeg data={data[i]} />
+            </Grid>
+        ))}
+    </Grid>
+);
+
+const GenericSenderLeg = ({ data }) => (
+    <Card elevation={3}>
+        <CardContent>
+            <SimpleShowLayout record={data}>
+                {Object.keys(data).map(param =>
+                    typeof data[param] === 'boolean' ? (
+                        <BooleanField
+                            source={param}
+                            label={labelize(param)}
+                            key={param}
+                        />
+                    ) : (
+                        <TextField
+                            source={param}
+                            label={labelize(param)}
+                            key={param}
+                        />
+                    )
+                )}
+            </SimpleShowLayout>
+        </CardContent>
+    </Card>
+);
+
+const GenericSenderEdit = ({ record }) => {
+    const data = get(record, '$staged.transport_params');
+    const uniqueKeys = Object.keys(
+        data.reduce((result, obj) => Object.assign(result, obj), {})
+    );
+    return (
+        <ArrayInput
+            label="Transport Parameters"
+            source="$staged.transport_params"
+        >
+            <CardFormIterator disableRemove disableAdd>
+                {uniqueKeys.map(param => (
+                    <TextInput
+                        source={param}
+                        label={labelize(param)}
+                        key={param}
+                    />
+                ))}
+            </CardFormIterator>
+        </ArrayInput>
+    );
+};
+
+const UnknownTransportType = () => (
+    <Typography variant="body2">Unknown Type</Typography>
+);
+
 const SenderTransportParamsCardsGrid = ({ ids, record }) => {
     const type = get(record, '$transporttype');
     const data = [];
@@ -580,7 +642,11 @@ const SenderTransportParamsCardsGrid = ({ ids, record }) => {
             case 'urn:x-nmos:transport:mxl':
                 return <MXLSender data={data} />;
             default:
-                return <b>Unknown Type</b>;
+                return transportIsOneToOne(type) ? (
+                    <GenericSender data={data} />
+                ) : (
+                    <UnknownTransportType />
+                );
         }
     } else {
         switch (type) {
@@ -593,7 +659,11 @@ const SenderTransportParamsCardsGrid = ({ ids, record }) => {
             case 'urn:x-nmos:transport:mxl':
                 return <MXLSenderEdit record={record} />;
             default:
-                return <b>Unknown Type</b>;
+                return transportIsOneToOne(type) ? (
+                    <GenericSenderEdit record={record} />
+                ) : (
+                    <UnknownTransportType />
+                );
         }
     }
 };
