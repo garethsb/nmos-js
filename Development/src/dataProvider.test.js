@@ -194,27 +194,20 @@ describe('UPDATE receivers', () => {
         id: '22222222-2222-4222-8222-222222222222',
         $connectionAPI:
             'http://node/x-nmos/connection/v1.2/single/receivers/22222222-2222-4222-8222-222222222222',
-        $staged: {
-            master_enable: true,
-            transport_params: [{ channel_name: null }],
-        },
-    };
-    const data = {
-        ...record,
-        $staged: {
-            master_enable: true,
-            transport_params: [{ channel_name: '11' }],
-        },
     };
 
-    const patchBody = async params => {
+    const patchBody = async (previous, next, params) => {
+        const staged = value => ({
+            master_enable: true,
+            transport_params: [{ channel_name: value }],
+        });
         const fetchJson = jest
             .spyOn(fetchUtils, 'fetchJson')
             .mockResolvedValue({ json: { id: record.id } });
         await dataProvider('UPDATE', 'receivers', {
             id: record.id,
-            data,
-            previousData: record,
+            previousData: { ...record, $staged: staged(previous) },
+            data: { ...record, $staged: staged(next) },
             ...params,
         });
         const [url, options] = fetchJson.mock.calls.pop();
@@ -223,15 +216,52 @@ describe('UPDATE receivers', () => {
         return JSON.parse(options.body);
     };
 
-    it('takes a number entered as text to be a number', async () => {
-        expect(await patchBody({})).toEqual({
-            transport_params: [{ channel_name: 11 }],
-        });
+    const edited = value => ({
+        transport_params: [{ channel_name: value }],
+    });
+    const omitted = { transport_params: [{}] };
+
+    it.each([
+        ['null to a number', null, '11', edited(11)],
+        ['null to a boolean word', null, 'true', edited(true)],
+        ['null to false', null, ' false ', edited(false)],
+        ['null to auto', null, 'auto', edited('auto')],
+        ['null to other text', null, 'meow', edited('meow')],
+        ['null to an address', null, '233.252.0.0', edited('233.252.0.0')],
+        ['null to a decimal', null, '57.8', edited(57.8)],
+        ['null to hex', null, '0x2a', edited(42)],
+        ['null left blank', null, '', omitted],
+        ['null left blank with spaces', null, '   ', omitted],
+        ['auto to a number', 'auto', '5004', edited(5004)],
+        ['auto to a boolean word', 'auto', 'false', edited(false)],
+        ['auto reprinted', 'auto', ' auto ', omitted],
+        ['a string kept as a string', '11', '12', edited('12')],
+        ['a string reprinted', '11', ' 11 ', omitted],
+        ['a string set to a boolean word', 'meow', 'true', edited('true')],
+        ['an empty string set to digits', '', '42', edited('42')],
+        ['a string cleared', 'meow', '', edited(null)],
+        ['a number edited', 42, '57', edited(57)],
+        ['a decimal edited', 57.8, '57.9', edited(57.9)],
+        ['a number reprinted', 42, '42', omitted],
+        ['a number set to auto', 42, 'auto', edited('auto')],
+        ['a number set to a boolean word', 42, 'true', edited(true)],
+        ['a boolean toggled by text', true, 'false', edited(false)],
+        ['a boolean reprinted', true, ' true ', omitted],
+        ['a boolean set to auto', false, 'auto', edited('auto')],
+        ['a boolean cleared', false, '', edited(null)],
+        ['a boolean set to a number', true, '42', edited(42)],
+        ['a boolean set to other text', true, 'meow', edited('meow')],
+    ])('%s', async (name, previous, next, expected) => {
+        expect(await patchBody(previous, next)).toEqual(expected);
     });
 
     it('leaves a verbatim string as it is', async () => {
-        expect(await patchBody({ verbatim: true })).toEqual({
-            transport_params: [{ channel_name: '11' }],
-        });
+        expect(await patchBody(null, '11', { verbatim: true })).toEqual(
+            edited('11')
+        );
+    });
+
+    it('patches a boolean switch as a boolean', async () => {
+        expect(await patchBody(false, true)).toEqual(edited(true));
     });
 });

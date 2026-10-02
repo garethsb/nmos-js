@@ -621,30 +621,18 @@ const convertDataProviderRequestToHTTP = (
             );
             if (allDifferences !== undefined) {
                 for (const d of allDifferences) {
-                    if (d.rhs === '') {
-                        // if the user clears a text input, set the param to null
-                        if (d.lhs !== null) {
+                    if (typeof d.rhs === 'string' && !params.verbatim) {
+                        const rhs = stagedTextPatchValue(d.lhs, d.rhs);
+                        if (rhs !== undefined) {
                             differences.push({
                                 kind: d.kind,
                                 lhs: d.lhs,
                                 path: d.path,
-                                rhs: null,
+                                rhs,
                             });
                         }
-                    } else if (typeof d.rhs === 'string' && !params.verbatim) {
-                        // ideally, if and only if the user enters a number without any extraneous cruft
-                        // (consider e.g. '233.252.0.0'),  set the param to the number
-                        // note that with the following implementation, we avoid e.g. ' ' being coerced to 0,
-                        // but accept that ' 0x2a ' is the answer to life, the universe and everything
-                        const n = Number(d.rhs.trim());
-                        differences.push({
-                            kind: d.kind,
-                            lhs: d.lhs,
-                            path: d.path,
-                            rhs: !isNaN(n) ? n : d.rhs,
-                        });
                     } else {
-                        // e.g. boolean from a toggle switch
+                        // e.g. boolean from a toggle switch, or a verbatim copy
                         differences.push(d);
                     }
                 }
@@ -732,6 +720,45 @@ const convertDataProviderRequestToHTTP = (
             return '';
         }
     }
+};
+
+// Value to PATCH for text typed into a staged parameter.
+// undefined means it reprints the previous value and must be omitted.
+// A verbatim copy does not come through here, so a string such as "11"
+// copied from a Sender stays a string.
+export const stagedTextPatchValue = (previous, text) => {
+    const trimmed = text.trim();
+    if (trimmed === '') {
+        // a blank field clears the parameter; null is already clear
+        return previous === null ? undefined : null;
+    }
+    if (typeof previous === 'string' && previous === trimmed) {
+        return undefined;
+    }
+    // "auto" is sent as that string, never as a number or a boolean
+    if (trimmed === 'auto') {
+        return 'auto';
+    }
+    // a previous string other than "auto" keeps the new text as a string
+    if (typeof previous === 'string' && previous !== 'auto') {
+        return text;
+    }
+
+    const boolean =
+        trimmed === 'true' ? true : trimmed === 'false' ? false : undefined;
+    if (boolean !== undefined) {
+        return boolean === previous ? undefined : boolean;
+    }
+
+    // if the entire trimmed text can be converted to a number, stage it as
+    // a number, but a string such as '233.252.0.0' is NaN so stays text; we
+    // accept that '0x2a' is the answer to life, the universe and everything
+    const numeric = Number(trimmed);
+    if (!Number.isNaN(numeric)) {
+        return numeric === previous ? undefined : numeric;
+    }
+
+    return text;
 };
 
 const timeout = (ms, promise) => {
