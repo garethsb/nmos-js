@@ -15,7 +15,7 @@ import ClearIcon from '@material-ui/icons/Clear';
 import { useTheme } from '@material-ui/styles';
 import ConnectionEditActions from '../../components/ConnectionEditActions';
 import ConnectionEditToolbar from '../../components/ConnectionEditToolbar';
-import { transportIsOneToOne } from '../../components/ParameterRegisters';
+import { transportOmitsTransportFile } from '../../components/ParameterRegisters';
 import ResourceTitle from '../../components/ResourceTitle';
 import emphasizedPaper from '../../theme/emphasizedPaper';
 import ReceiverTransportParamsCardsGrid from './ReceiverTransportParams';
@@ -83,14 +83,20 @@ const EditStagedTab = props => (
             toolbar={<ConnectionEditToolbar />}
             redirect={`/receivers/${props.id}/show/staged`}
         >
-            <TextInput label="Sender ID" source="$staged.sender_id" />
+            <TextInput
+                label="Sender ID"
+                source="$staged.sender_id"
+                helperText={false}
+            />
             <BooleanInput
                 label="Master Enable"
                 source="$staged.master_enable"
+                helperText={false}
             />
             <SelectInput
                 label="Activation Mode"
                 source="$staged.activation.mode"
+                helperText={false}
                 choices={[
                     { id: null, name: <ClearIcon /> },
                     {
@@ -117,6 +123,7 @@ const EditStagedTab = props => (
                                     label="Requested Time"
                                     source="$staged.activation.requested_time"
                                     {...rest}
+                                    helperText={false}
                                 />
                             );
                         case 'activate_scheduled_absolute':
@@ -125,6 +132,7 @@ const EditStagedTab = props => (
                                     label="Requested Time"
                                     source="$staged.activation.requested_time"
                                     {...rest}
+                                    helperText={false}
                                 />
                             );
                         default:
@@ -142,14 +150,14 @@ const EditStagedTab = props => (
                 {({ formData }) => {
                     const type = get(formData, '$transporttype');
                     return (
-                        type !== 'urn:x-nmos:transport:mxl' &&
-                        !transportIsOneToOne(type) && (
+                        !transportOmitsTransportFile(type) && (
                             <TextInput
                                 label="Transport File"
                                 source="$staged.transport_file.data"
                                 fullWidth
                                 multiline
                                 resettable
+                                helperText={false}
                             />
                         )
                     );

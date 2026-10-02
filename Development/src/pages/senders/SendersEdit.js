@@ -82,14 +82,20 @@ const EditStagedTab = props => (
             toolbar={<ConnectionEditToolbar />}
             redirect={`/senders/${props.id}/show/staged`}
         >
-            <TextInput label="Receiver ID" source="$staged.receiver_id" />
+            <TextInput
+                label="Receiver ID"
+                source="$staged.receiver_id"
+                helperText={false}
+            />
             <BooleanInput
                 label="Master Enable"
                 source="$staged.master_enable"
+                helperText={false}
             />
             <SelectInput
                 label="Activation Mode"
                 source="$staged.activation.mode"
+                helperText={false}
                 choices={[
                     { id: null, name: <ClearIcon /> },
                     {
@@ -116,6 +122,7 @@ const EditStagedTab = props => (
                                     label="Requested Time"
                                     source="$staged.activation.requested_time"
                                     {...rest}
+                                    helperText={false}
                                 />
                             );
                         case 'activate_scheduled_absolute':
@@ -124,6 +131,7 @@ const EditStagedTab = props => (
                                     label="Requested Time"
                                     source="$staged.activation.requested_time"
                                     {...rest}
+                                    helperText={false}
                                 />
                             );
                         default:

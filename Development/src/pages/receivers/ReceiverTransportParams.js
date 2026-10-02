@@ -1,19 +1,20 @@
 import React from 'react';
-import { Card, CardContent, Grid, Typography } from '@material-ui/core';
-import CheckIcon from '@material-ui/icons/Check';
-import ClearIcon from '@material-ui/icons/Clear';
+import { Card, Grid, Typography } from '@material-ui/core';
 import {
     ArrayInput,
     BooleanField,
     BooleanInput,
-    SelectField,
-    SelectInput,
     SimpleShowLayout,
     TextField,
     TextInput,
 } from 'react-admin';
 import { get, has } from 'lodash';
 import CardFormIterator from '../../components/CardFormIterator';
+import {
+    BooleanOrAutoField,
+    BooleanOrAutoInput,
+} from '../../components/BooleanOrAuto';
+import GenericTransportParamInput from '../../components/GenericTransportParamInput';
 import { transportIsOneToOne } from '../../components/ParameterRegisters';
 import SanitizedDivider from '../../components/SanitizedDivider';
 import labelize from '../../components/labelize';
@@ -32,7 +33,7 @@ const MQTTReceiverLeg = ({ data }) => {
     const params_ext = Object.keys(data).filter(x => x.startsWith('ext_'));
     return (
         <Card elevation={3}>
-            <CardContent>
+            <>
                 <SimpleShowLayout record={data}>
                     {has(data, 'source_host') && (
                         <TextField source="source_host" label="Source Host" />
@@ -47,21 +48,9 @@ const MQTTReceiverLeg = ({ data }) => {
                         />
                     )}
                     {has(data, 'broker_authorization') && (
-                        <SelectField
+                        <BooleanOrAutoField
                             source="broker_authorization"
                             label="Broker Authorization"
-                            choices={[
-                                {
-                                    id: true,
-                                    name: <CheckIcon />,
-                                },
-                                {
-                                    id: false,
-                                    name: <ClearIcon />,
-                                },
-                                { id: 'auto', name: 'auto' },
-                            ]}
-                            translateChoice={false}
                         />
                     )}
                     {has(data, 'broker_topic') && (
@@ -82,7 +71,7 @@ const MQTTReceiverLeg = ({ data }) => {
                         />
                     ))}
                 </SimpleShowLayout>
-            </CardContent>
+            </>
         </Card>
     );
 };
@@ -112,15 +101,9 @@ const MQTTReceiverEdit = ({ record }) => {
                     />
                 )}
                 {uniqueKeys.includes('broker_authorization') && (
-                    <SelectInput
+                    <BooleanOrAutoInput
                         source="broker_authorization"
                         label="Broker Authorization"
-                        choices={[
-                            { id: true, name: <CheckIcon /> },
-                            { id: false, name: <ClearIcon /> },
-                            { id: 'auto', name: 'auto' },
-                        ]}
-                        translateChoice={false}
                     />
                 )}
                 {uniqueKeys.includes('broker_topic') && (
@@ -159,7 +142,7 @@ const RTPReceiverLeg = ({ data }) => {
     const params_ext = Object.keys(data).filter(x => x.startsWith('ext_'));
     return (
         <Card elevation={3}>
-            <CardContent>
+            <>
                 <SimpleShowLayout record={data}>
                     {has(data, 'rtp_enabled') && (
                         <BooleanField
@@ -236,7 +219,7 @@ const RTPReceiverLeg = ({ data }) => {
                         />
                     ))}
                 </SimpleShowLayout>
-            </CardContent>
+            </>
         </Card>
     );
 };
@@ -337,24 +320,12 @@ const WebSocketReceiverLeg = ({ data }) => {
     const params_ext = Object.keys(data).filter(x => x.startsWith('ext_'));
     return (
         <Card elevation={3}>
-            <CardContent>
+            <>
                 <SimpleShowLayout record={data}>
                     {has(data, 'connection_authorization') && (
-                        <SelectField
+                        <BooleanOrAutoField
                             source="connection_authorization"
                             label="Connection Authorization"
-                            choices={[
-                                {
-                                    id: true,
-                                    name: <CheckIcon />,
-                                },
-                                {
-                                    id: false,
-                                    name: <ClearIcon />,
-                                },
-                                { id: 'auto', name: 'auto' },
-                            ]}
-                            translateChoice={false}
                         />
                     )}
                     {has(data, 'connection_uri') && (
@@ -372,7 +343,7 @@ const WebSocketReceiverLeg = ({ data }) => {
                         />
                     ))}
                 </SimpleShowLayout>
-            </CardContent>
+            </>
         </Card>
     );
 };
@@ -390,15 +361,9 @@ const WebSocketReceiverEdit = ({ record }) => {
         >
             <CardFormIterator disableRemove disableAdd>
                 {uniqueKeys.includes('connection_authorization') && (
-                    <SelectInput
+                    <BooleanOrAutoInput
                         source="connection_authorization"
                         label="Connection Authorization"
-                        choices={[
-                            { id: true, name: <CheckIcon /> },
-                            { id: false, name: <ClearIcon /> },
-                            { id: 'auto', name: 'auto' },
-                        ]}
-                        translateChoice={false}
                     />
                 )}
                 {uniqueKeys.includes('connection_uri') && (
@@ -431,7 +396,7 @@ const MXLReceiverLeg = ({ data }) => {
     const params_ext = Object.keys(data).filter(x => x.startsWith('ext_'));
     return (
         <Card elevation={3}>
-            <CardContent>
+            <>
                 <SimpleShowLayout record={data}>
                     {has(data, 'mxl_domain_id') && (
                         <TextField
@@ -451,7 +416,7 @@ const MXLReceiverLeg = ({ data }) => {
                         />
                     ))}
                 </SimpleShowLayout>
-            </CardContent>
+            </>
         </Card>
     );
 };
@@ -495,7 +460,7 @@ const GenericReceiver = ({ data }) => (
 
 const GenericReceiverLeg = ({ data }) => (
     <Card elevation={3}>
-        <CardContent>
+        <>
             <SimpleShowLayout record={data}>
                 {Object.keys(data).map(param =>
                     typeof data[param] === 'boolean' ? (
@@ -513,7 +478,7 @@ const GenericReceiverLeg = ({ data }) => (
                     )
                 )}
             </SimpleShowLayout>
-        </CardContent>
+        </>
     </Card>
 );
 
@@ -529,10 +494,11 @@ const GenericReceiverEdit = ({ record }) => {
         >
             <CardFormIterator disableRemove disableAdd>
                 {uniqueKeys.map(param => (
-                    <TextInput
+                    <GenericTransportParamInput
+                        key={param}
                         source={param}
                         label={labelize(param)}
-                        key={param}
+                        types={data.map(leg => typeof leg[param])}
                     />
                 ))}
             </CardFormIterator>
