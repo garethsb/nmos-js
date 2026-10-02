@@ -18,7 +18,10 @@ import {
     receiverEssenceFromSender,
     senderEssenceFromReceiver,
 } from './connectionHeadingMatch';
-import { transportFileHint } from '../../components/controlApiMessages';
+import {
+    TRANSPORT_FILE_NOT_AVAILABLE,
+    transportFileHint,
+} from '../../components/controlApiMessages';
 import { parseTransportUrn } from '../../transportUrn';
 import {
     FORMATS,
@@ -418,15 +421,22 @@ describe('control API messages', () => {
         expect(transportFileHint('urn:x-nmos:transport:mqtt')).toBe(
             'MQTT does not use a transport file.'
         );
+        expect(transportFileHint('urn:x-nmos:transport:dash')).toBe(
+            'DASH does not use a transport file.'
+        );
     });
 
-    it('treats RTP as a missing transport file', () => {
+    it('treats RTP and an unrecognised transport as a missing transport file', () => {
         expect(transportFileHint('urn:x-nmos:transport:rtp')).toBe(
-            'Transport file is not available.'
+            TRANSPORT_FILE_NOT_AVAILABLE
         );
         expect(transportFileHint('urn:x-nmos:transport:rtp.ucast')).toBe(
-            'Transport file is not available.'
+            TRANSPORT_FILE_NOT_AVAILABLE
         );
+        expect(
+            transportFileHint('urn:x-example:transport:carrier-pigeon')
+        ).toBe(TRANSPORT_FILE_NOT_AVAILABLE);
+        expect(transportFileHint(undefined)).toBe(TRANSPORT_FILE_NOT_AVAILABLE);
     });
 
     it('takes the URN-base of a versioned or subclassified transport', () => {

@@ -3,6 +3,7 @@ import { get, map } from 'lodash';
 import HintTypography from './HintTypography';
 import labelize from './labelize';
 import { FRIENDLY_PARAMETERS, useJSONSetting } from '../settings';
+import { parseTransportUrn } from '../transportUrn';
 
 // const SOME_PARAMETER_REGISTER = {
 //    'urn:x-vendor:foo:bar': {
@@ -238,3 +239,15 @@ export const transportIsOneToOne = transport =>
             false
         )
     );
+
+const TRANSPORT_RTP = 'urn:x-nmos:transport:rtp';
+
+export const transportUsesTransportFile = transport =>
+    get(parseTransportUrn(transport), 'base') === TRANSPORT_RTP;
+
+// A registered transport other than RTP does not use a transport file.
+// An unrecognised transport is not in this set.
+export const transportOmitsTransportFile = transport => {
+    const base = get(parseTransportUrn(transport), 'base');
+    return base in TRANSPORTS && !transportUsesTransportFile(transport);
+};
